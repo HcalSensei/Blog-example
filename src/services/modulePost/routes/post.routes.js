@@ -2,6 +2,7 @@ const Router = require('../../../core/router/router')
 const {JwtMiddleware, MulterMiddleware, Utils} = require('../../../utils')
 const {postController} = require('../http/controller')
 const {PostMiddleware} = require('../http/middleware')
+const {ImageController} = require('../../moduleImage/controller')
 
 class PostRoutes extends Router{
     constructor(app){
@@ -30,12 +31,37 @@ class PostRoutes extends Router{
             JwtMiddleware.checkAuth,
             PostMiddleware.register(),
             PostMiddleware.verifyTitrePost,
-            (req, res)=>{
+            MulterMiddleware.multipleImage,
+            async (req, res)=>{
                 const admin = req.authToken.adminID 
                 const data = req.body
+                const Img = req.files ? req.files: []
+                if(Img.length!==0){
+                    result = await ImageController.saveImageMultiple(Img)
+                }
 
                 data.auteurId = admin
+                data.postMedia =result.data
                 return Utils.apiResponse(res, postController.create(data))
+            }
+        )
+
+        this.app.post(
+            '/post/update/:id',
+            JwtMiddleware.checkAuth,
+            PostMiddleware.verifyIdPost,
+            MulterMiddleware.multipleImage,
+            async (req, res)=>{
+                const admin = req.authToken.adminID 
+                const data = req.body
+                const postId = req.params.id
+                if(Img.length!==0){
+                    result = await ImageController.saveImageMultiple(Img)
+                }
+
+                data.auteurId = admin
+                data.postMedia =result.data
+                return Utils.apiResponse(res, postController.update(data))
             }
         )
 

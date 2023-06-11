@@ -19,6 +19,21 @@ const postController = {
         connexion.end()
         return Promise.resolve({status:200, error: false, message: "Ajout d'un nouveau post", data: result.data})
     },
+    update: async(postData, postId)=>{
+        const connexion = mysqlHelper.connect()
+        const sql = 'UPDATE post SET postTitre=?, postTheme =?, postContenu=?, auteurId=?, postCategorieId=?, typePost=?, dateModification =NOW() WHERE postId =?'
+        const result = await query(connexion, sql, [
+            postData.postTitre,
+            postData.postTheme,
+            postData.postContenu,
+            postData.auteurId,
+            postData.postCategorieId,
+            postData.typePost,
+            postId
+        ])
+        connexion.end()
+        return Promise.resolve({status:200, error: false, message: "Mise à jour d'un post", data: result.data})
+    },
     getActivatedPost: async()=>{
         const connexion = mysqlHelper.connect()
         const sql = 'SELECT * FROM post WHERE statusPostdo=1 ORDER BY dateCreation DESC'

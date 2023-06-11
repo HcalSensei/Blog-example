@@ -6,7 +6,7 @@ class ImageController{
     static async saveImageMultiple(pathFile){
         return new Promise(async (resolve, reject)=>{
             try {
-                let saveFilePath = await MulterMiddleware.saveMultipleImage(pathFile)
+                let saveFilePath = await MulterMiddleware.saveMultipleImage(pathFile, MulterMiddleware.uploadImagePath)
 
                 let results = []
                 for(let onePath of saveFilePath.data){

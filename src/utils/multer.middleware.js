@@ -2,7 +2,10 @@ const multer = require('multer')
 const path = require('path') 
 const {resole} = require('path')
 const fs =require('fs')
-const {cdg, config, Utils}= require('./')
+const cdg = require('./cdg')
+const Utils = require('./utils')
+const config= require('./config')
+const mime= require('mime-types')
 
 // interface File{
 //     path: string,
@@ -87,7 +90,7 @@ class MulterMiddleware{
         let allowedExtension = ['png', 'jpeg', 'jpg', 'gif', 'PNG','JPEG', 'JPG', 'GIF'];
         const upload = multer({
             dest: MulterMiddleware.uploadPathTmp,
-            fileFilter: (req, res, cb)=>{
+            fileFilter: (req, file, cb)=>{
                 if(!cdg.inArray(MulterMiddleware.buildExt(file.mimetype), allowedExtension)){
                     req.fileValidationError = 'Type de fichier non autorisé';
                     return Utils.apiResponse(res, new Promise((resolve)=>{
@@ -102,7 +105,7 @@ class MulterMiddleware{
             }
         }).array("files", 10);
 
-        upload(res, res, function (err){
+        upload(req, res, function (err){
             if(err instanceof multer.MulterError){
                 if(err.code === 'LIMIT_FILE_SIZE') {
                     err.message = "Fichier trop volumineux"
@@ -173,11 +176,13 @@ class MulterMiddleware{
     static async saveMultipleImage(files, destination){
         return new Promise((resolve, reject)=>{
             try {
-                let result = [];
+                let results = [];
+
+                let destinationPath = destination ? destination : MulterMiddleware.uploadImagePath 
 
                 for(let file of files){
                     const tempPath = file.path
-                    let destinationPath = destination ? destination : MulterMiddleware.uploadPath;
+                    
                     let fileExt = MulterMiddleware.buildExt(file.mimetype)
                     let fullFilePath = destinationPath + "/" + file.filename + "-" + cdg.getDate() + '.' + fileExt;
 
@@ -186,11 +191,11 @@ class MulterMiddleware{
                         fs.rmdirSync(tempPath)
                     }
 
-                    fullFilePath= path.join(destination+"/"+file.filename + "-" + cdg.getDate() + '.' + fileExt);
+                    fullFilePath= path.join(destinationPath+"/"+file.filename + "-" + cdg.getDate() + '.' + fileExt);
                     results.push(fullFilePath);
                 }
 
-                return resolve({ error: false, status: 302, message: "Images envoyées.", data: results });
+                return resolve({ error: false, status: 200, message: "Images envoyées.", data: results });
             } catch (error) {
                 return reject({ error: true, status: 500, message: "💀☠💀Une erreur interne s'est produite à la sauvegarde de plusieures images❗❗❗💀☠💀", data: null })
             }

@@ -1,6 +1,15 @@
 const Router = require('../../../core/router/router')
-const {Utils,JwtMiddleware, MulterMiddleware} = require('../../../utils')
+const {Utils,JwtMiddleware, MulterMiddleware, FileUpLoader} = require('../../../utils')
 const {ImageController} = require('../controller')
+const path = require('path') 
+const express = require('express')
+
+const uploadPathTmp = path.join(process.env.UPLOAD_TMP_PATH)
+const uploadImagePath = path.join(process.env.UPLOAD_IMG_PATH)
+const uploadSongPath = path.join(process.env.UPLOAD_SONG_PATH)
+const uploadVideoPath = path.join(process.env.UPLOAD_VIDEO_PATH)
+
+const uploaderImg = new FileUpLoader(['image/jpeg', 'image/png'], 5, uploadPathTmp)
 
 class ImageRoutes extends Router{
     constructor(app){
@@ -16,11 +25,24 @@ class ImageRoutes extends Router{
                 let result = []
 
                 if(Img.length!==0){
-                    result = await ImageController.saveMultipleImage(Img)
+                    result = await ImageController.saveImageMultiple(Img)
                 }
-                console.log(result)
-            return Utils.apiResponse(res, Promise.resolve({status: 200, error: false, data: result}))
+            return Utils.apiResponse(res, Promise.resolve({status: 200, message: "Tous c'est bien passe",error: false, data: result.data}))
         })
+
+        this.app.post(
+            '/test2/image',
+            uploaderImg.handleUpload,
+            (req, res)=>{
+                console.log(req.files);
+                res.send('Files uploaded!')
+            }
+        )
+
+        this.app.use(
+            '/src/assets/images',
+            express.static(path.join(__dirname,"..","..","..","assets","images"))
+        )
     }
 }
 module.exports = ImageRoutes

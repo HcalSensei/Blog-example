@@ -1,12 +1,15 @@
 const {MulterMiddleware} = require('../../../utils')
 
+
 class ImageController{
-    static async saveMultipleImage(pathFile){
+
+    static async saveImageMultiple(pathFile){
         return new Promise(async (resolve, reject)=>{
             try {
-                let saveFilePath = await MulterMiddleware.saveMultipleImage(pathFile, null)
+                let saveFilePath = await MulterMiddleware.saveMultipleImage(pathFile)
+
                 let results = []
-                for(let onePath of saveFilePath){
+                for(let onePath of saveFilePath.data){
                     results.push(onePath)
                 }
                 return resolve({
